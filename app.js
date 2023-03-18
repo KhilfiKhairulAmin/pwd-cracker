@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import io from './io.js'
+import rl from './io.js'
 
-const name = await io.question('Please specify your name: ');
+const running = true
 
-console.log(`Hi ${name}!`);
+while (running) {
 
-io.close()
+}
