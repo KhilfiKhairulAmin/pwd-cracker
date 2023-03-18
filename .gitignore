@@ -1,7 +1,7 @@
 node_modules
 
 # Source of all possible passwords
-rainbow_table.json
+rainbow_table.txt
 
 # Source of hashed passwords
 stored_hash.json
