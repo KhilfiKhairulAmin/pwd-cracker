@@ -1,3 +1,5 @@
+node_modules
+
 # Source of all possible passwords
 rainbow_table.json
 
