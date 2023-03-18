@@ -1,6 +1,6 @@
-const readline = require('node:readline/promises')
-const { stdin: input, stdout: output } = require('node:process')
+import * as readline from 'readline/promises'
+import { stdin as input, stdout as output } from 'node:process'
 
 const rl = readline.createInterface({ input, output })
 
-module.exports = rl
+export default rl

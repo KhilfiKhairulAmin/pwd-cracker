@@ -1,6 +1,8 @@
 #!/usr/bin/env node
-import * as readline from 'readline/promises'
-import { stdin as input, stdout as output } from 'node:process'
+import io from './io.js'
 
-const rl = readline.createInterface({ input, output })
+const name = await io.question('Please specify your name: ');
 
+console.log(`Hi ${name}!`);
+
+io.close()
