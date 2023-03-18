@@ -3,4 +3,6 @@ import { stdin as input, stdout as output } from 'node:process'
 
 const io = createInterface({ input, output })
 
-export default io
+export default {
+  ask: io.question
+}
