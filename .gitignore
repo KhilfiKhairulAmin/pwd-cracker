@@ -1,0 +1,8 @@
+# Source of all possible passwords
+rainbow_table.json
+
+# Source of hashed passwords
+stored_hash.json
+
+# rainbow_table.json contains a set of possible passwords to be tried and compared with a hash
+# stored_hash.json contains websites URL and their corresponding hashed password
