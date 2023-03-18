@@ -1,5 +1,6 @@
-const express = require('express')
-const bcrypt = require('bcrypt')
+#!/usr/bin/env node
+import * as readline from 'readline/promises'
+import { stdin as input, stdout as output } from 'node:process'
 
-const app = express()
+const rl = readline.createInterface({ input, output })
 
