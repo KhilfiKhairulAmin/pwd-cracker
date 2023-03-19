@@ -32,6 +32,10 @@ class TerminalInterface {
     }
   }
 
+  chat (message) {
+    console.log(message)
+  }
+
   #isOn () {
     return this.#on
   }
