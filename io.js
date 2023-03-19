@@ -1,8 +1,11 @@
 import { createInterface } from 'readline/promises'
 import { stdin as input, stdout as output } from 'node:process'
-import InterfaceError from './error.js'
+import { InterfaceNotStartedError } from './error'
 
 class TerminalInterface {
+  #io
+  #on
+
   constructor () {
     this.#io = createInterface({ input, output })
     this.#on = false
@@ -17,28 +20,35 @@ class TerminalInterface {
     this.#io.close()
   }
 
-  prompt (question) {
-    if (!this.#on) {
-      console.log('Interface is not started. Please start the interface to use it.')
-      return
-    }
-
-    return this.#io.question(question)
-  }
-
-  promptHidden (question) {
+  async prompt (question) {
     try {
       if (!this.#isOn()) {
-        throw new InterfaceError()
+        throw InterfaceNotStartedError
       }
+
+      return await this.#io.question(question)
+    } catch (err) {
+      this.#errorHandler(err)
+    }
+  }
+
+  async promptHidden (question) {
+    try {
+      if (!this.#isOn()) {
+        throw InterfaceNotStartedError
+      }
+
+
+    } catch (err) {
+      this.#errorHandler(err)
     }
   }
 
   #isOn () {
-    return this.on
+    return this.#on
   }
 
   #errorHandler (err) {
-
+    console.log(err.message)
   }
 }
