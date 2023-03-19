@@ -1,8 +1,8 @@
-class InterfaceIsNotStartedError extends Error {
-  super () {
-    this.message = 'Please start the interface to use it'
-    this.name = 'InterfaceIsNotStartedError'
+class InterfaceError extends Error {
+  constructor (message) {
+    super(message)
+    this.name = 'InterfaceError'
   }
 }
 
-export default InterfaceIsNotStartedError
+export default InterfaceError
