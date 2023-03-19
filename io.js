@@ -33,7 +33,15 @@ class TerminalInterface {
   }
 
   chat (message) {
-    console.log(message)
+    try {
+      if (!this.#isOn()) {
+        throw InterfaceNotStartedError
+      }
+
+      console.log(message)
+    } catch (err) {
+      this.#errorHandler(err)
+    }
   }
 
   #isOn () {
@@ -41,7 +49,8 @@ class TerminalInterface {
   }
 
   #errorHandler (err) {
-    console.log(err.message)
+    console.error(err.stack)
+    process.exit(1)
   }
 }
 
