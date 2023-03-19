@@ -1,6 +1,6 @@
 import { createInterface } from 'readline/promises'
 import { stdin as input, stdout as output } from 'node:process'
-import { InterfaceNotStartedError } from './error'
+import { InterfaceNotStartedError } from './error.js'
 
 class TerminalInterface {
   #io
@@ -32,18 +32,6 @@ class TerminalInterface {
     }
   }
 
-  async promptHidden (question) {
-    try {
-      if (!this.#isOn()) {
-        throw InterfaceNotStartedError
-      }
-
-
-    } catch (err) {
-      this.#errorHandler(err)
-    }
-  }
-
   #isOn () {
     return this.#on
   }
@@ -51,4 +39,8 @@ class TerminalInterface {
   #errorHandler (err) {
     console.log(err.message)
   }
+}
+
+export {
+  TerminalInterface
 }
