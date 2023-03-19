@@ -1,39 +1,49 @@
 #!/usr/bin/env node
-import * as readline from 'readline/promises'
-import { stdin as input, stdout as output } from 'node:process'
-import { writeFileSync } from 'node:fs'
 import { hash } from 'bcrypt'
+import io from './io.js'
+import { writeFile } from 'node:fs/promises'
 
-// Initialize interface of program
-const rl = readline.createInterface({ input, output })
+const state = {
+  off: false,
+  on: true
+}
 
-let running = true
+let currentState = state.on
 
-console.log('Welcome to PWD Cracker')
+const run = async () => {
+  while (currentState) {
+    try {
+      const command = Number(await io.ask('[0] Keep password    [1] Tell password    [2] Quit\n'))
 
-while (running) {
-  try {
-    const command = Number(await rl.question('[0] Keep new password    [1] Tell password\n'))
-
-    switch (command) {
-      case 0: {
-        console.log('Please enter the following information')
-        const urlDomain = await rl.question('URL Domain: ')
-        const pwd = await rl.question('Password: ')
-        hash(pwd, 15, (_err, hashed) => {
-          const data = {
-            domain: urlDomain,
-            hash: hashed
-          }
-          writeFileSync('./stored_hash.json', JSON.stringify(data))
-        })
+      switch (command) {
+        case 0: {
+          keepPassword()
+          break
+        }
+        case 2: {
+          currentState = state.off
+          continue
+        }
       }
+    } catch (err) {
+      console.log(err, '\n')
     }
-    running = false
-  } catch (err) {
-    if (err) throw err
-    console.log('Something went wrong')
   }
 }
 
-rl.close()
+const keepPassword = async () => {
+  console.log('Please enter the following information')
+  const urlDomain = await io.ask('URL Domain: ')
+  const pwd = await io.ask('Password: ')
+
+  hash(pwd, 15, async (err, hashedPwd) => {
+    if (err) {
+      console.log(err)
+      console.log('Process failed. No new password is kept.')
+    }
+
+    await writeFile('./stored_hash.json', { domain: urlDomain, hash: hashedPwd })
+  })
+}
+
+run()
