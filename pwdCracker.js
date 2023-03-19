@@ -4,16 +4,22 @@ import { writeFile, readFile } from 'node:fs/promises'
 const keepPassword = async (urlDomain, pwd) => {
   const hashedPwd = await hash(pwd, 10)
   const data = await getData()
+
   data.push({
     urlDomain,
     hash: hashedPwd
   })
 
-  await writeFile('./stored_hash.json', data)
+  await writeFile('./stored_hash.json', JSON.stringify(data))
 }
 
 const getData = async () => {
-  return JSON.parse(await readFile('./stored_hash.json'))
+  try {
+    const data = JSON.parse(await readFile('./stored_hash.json'))
+    return data
+  } catch (err) {
+    return []
+  }
 }
 
 const searchDomain = async (urlDomain) => {
