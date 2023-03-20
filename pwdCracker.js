@@ -17,7 +17,13 @@ class PwdCracker {
     } catch (err) {
       data = []
     }
-    this.#stored_hash.push(data)
+    const temp = this.#stored_hash
+    this.#stored_hash = data
+
+    for (const item of temp) {
+      this.#stored_hash.push(item)
+    }
+
     this.#loaded = true
   }
 
@@ -30,7 +36,7 @@ class PwdCracker {
 
   async #getAllUrlDomain () {
     if (!this.#loaded) {
-      this.#stored_hash.push(await this.loadStoredHash())
+      await this.loadStoredHash()
     }
     return this.#stored_hash.map((data) => {
       return data.urlDomain
@@ -48,7 +54,7 @@ class PwdCracker {
       return false
     }
 
-    if (!(await compare(pwd, this.#stored_hash[found]))) {
+    if (!(await compare(pwd, this.#stored_hash[found].pwd))) {
       return false
     }
 
@@ -57,7 +63,7 @@ class PwdCracker {
 
   async #save () {
     if (!this.#loaded) {
-      this.#stored_hash.push(await this.loadStoredHash())
+      await this.loadStoredHash()
     }
     await writeFile('./stored_hash.json', JSON.stringify(this.#stored_hash))
   }
