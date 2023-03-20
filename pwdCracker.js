@@ -4,21 +4,11 @@ import { writeFile, readFile } from 'node:fs/promises'
 class PwdCracker {
   stored_hash
 
-  constructor (data) {
-
+  constructor () {
+    this.stored_hash = []
   }
 
-  async init () {
-    let data
-    try {
-      data = JSON.parse(await readFile('./stored_hash.json'))
-    } catch (err) {
-      data = []
-    }
-    constructor()
-  }
-
-  async reloadStoredHash () {
+  async loadStoredHash () {
     let data
     try {
       data = JSON.parse(await readFile('./stored_hash.json'))
@@ -30,53 +20,32 @@ class PwdCracker {
 
   async keepPassword (urlDomain, pwd) {
     const hashedPwd = await hash(pwd, 10)
-    const data = await getData()
-
-    this.stored_hash = 
-  
-    await writeFile('./stored_hash.json', JSON.stringify(data))
+    this.stored_hash.push({ urlDomain, hash: hashedPwd })
+    await this.#save()
   }
-  
+
   async searchDomain (urlDomain) {
-    const allUrlDomain = await getUrlDomain()
+    const allUrlDomain = await this.#getAllUrlDomain()
     return allUrlDomain.findIndex((url) => {
       return url === urlDomain
     })
   }
-  
-  async getUrlDomain () {
-    const data = await getData()
-    return data.map((pwd) => {
-      return pwd.urlDomain
+
+  async #getAllUrlDomain () {
+    return this.stored_hash.map((data) => {
+      return data.urlDomain
     })
   }
-  
+
   async tellPassword () {
-  
+
   }
-}
 
-const searchDomain = async (urlDomain) => {
-  const allUrlDomain = await getUrlDomain()
-  return allUrlDomain.findIndex((url) => {
-    return url === urlDomain
-  })
-}
-
-const getUrlDomain = async () => {
-  const data = await getData()
-  return data.map((pwd) => {
-    return pwd.urlDomain
-  })
-}
-
-const tellPassword = async () => {
-
+  async #save () {
+    await writeFile('./stored_hash.json', JSON.stringify(this.stored_hash))
+  }
 }
 
 export {
-  keepPassword,
-  searchDomain,
-  getUrlDomain,
-  tellPassword
+  PwdCracker
 }
