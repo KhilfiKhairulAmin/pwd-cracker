@@ -1,6 +1,6 @@
 import { createInterface } from 'readline/promises'
 import { stdin as input, stdout as output } from 'node:process'
-import { InterfaceNotStartedError } from './error.ts'
+import { InterfaceNotStartedError } from './error.js'
 
 class TerminalInterface {
   #io

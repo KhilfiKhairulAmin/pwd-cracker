@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { TerminalInterface } from './io.js'
-import { keepPassword } from './pwdCracker.ts'
+import { keepPassword } from './pwdCracker.js'
 
 const state = {
   ON: true,

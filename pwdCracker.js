@@ -56,6 +56,24 @@ class PwdCracker {
   }
 }
 
+const searchDomain = async (urlDomain) => {
+  const allUrlDomain = await getUrlDomain()
+  return allUrlDomain.findIndex((url) => {
+    return url === urlDomain
+  })
+}
+
+const getUrlDomain = async () => {
+  const data = await getData()
+  return data.map((pwd) => {
+    return pwd.urlDomain
+  })
+}
+
+const tellPassword = async () => {
+
+}
+
 export {
   keepPassword,
   searchDomain,
