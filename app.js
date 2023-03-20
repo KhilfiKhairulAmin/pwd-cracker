@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { TerminalInterface } from './io.js'
-import { keepPassword } from './pwdCracker.js'
+import { PwdCracker } from './pwdCracker.js'
+
+const pwdCracker = new PwdCracker()
 
 const state = {
   ON: true,
@@ -19,7 +21,7 @@ io.chat('Welcome to PWD Cracker')
 const urlDomain = await io.prompt('URL Domain: ')
 const pwd = await io.prompt('Password: ')
 
-await keepPassword(urlDomain, pwd)
+await pwdCracker.keepPassword(urlDomain, pwd)
 
 io.stop()
 currentState = state.OFF
