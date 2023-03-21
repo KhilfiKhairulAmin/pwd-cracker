@@ -1,6 +1,16 @@
 import { compare, hash } from 'bcrypt'
 import { writeFile, readFile, appendFile } from 'node:fs/promises'
 
+class PwdCrackerError extends Error {
+  constructor (message) {
+    super(message)
+    this.name = 'PwdCrackerError'
+  }
+}
+
+const PwdCrackerEmptyRainbowError = new PwdCrackerError('Please enter possible passwords in rainbow_table.txt')
+const PwdCrackerFalseUrlDomainOrPasswordError = new PwdCrackerError('URL Domain is not registered or Password(s) are not correct')
+
 class PwdCracker {
   #stored_hash
   #loaded
@@ -43,22 +53,37 @@ class PwdCracker {
     })
   }
 
-  async tellPassword (urlDomain, pwd) {
-    const allUrlDomain = await this.#getAllUrlDomain()
+  async tellPassword (urlDomain) {
+    try {
+      const allUrlDomain = await this.#getAllUrlDomain()
 
-    const found = allUrlDomain.findIndex(async (hashedUrlDomain) => {
-      return await compare(urlDomain, hashedUrlDomain)
-    })
+      let found = -1
 
-    if (found === -1) {
+      for (let i = 0; i < allUrlDomain.length; i++) {
+        if (await compare(urlDomain, allUrlDomain[i])) {
+          found = i
+          break
+        }
+      }
+
+      if (found === -1) {
+        throw PwdCrackerFalseUrlDomainOrPasswordError
+      }
+
+      const rainbow = await this.#getRainbow()
+
+      if (!rainbow.length) {
+        throw PwdCrackerEmptyRainbowError
+      }
+
+      for (const pwd of rainbow) {
+        if (await compare(pwd, this.#stored_hash[found].pwd)) return pwd
+      }
+      throw PwdCrackerFalseUrlDomainOrPasswordError
+    } catch (err) {
+      this.#errorHandler(err)
       return false
     }
-
-    if (!(await compare(pwd, this.#stored_hash[found].pwd))) {
-      return false
-    }
-
-    return pwd
   }
 
   async #save () {
@@ -74,13 +99,17 @@ class PwdCracker {
       return await this.#rainbowParser(rawRainbow)
     } catch (err) {
       await appendFile('./rainbow_table.txt', '')
-      return ''
+      return []
     }
   }
 
   async #rainbowParser (rawRainbow) {
     const rainbows = String(rawRainbow)
     return rainbows.split('\n')
+  }
+
+  #errorHandler (err) {
+    console.error(err.message)
   }
 }
 
