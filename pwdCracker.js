@@ -1,5 +1,5 @@
 import { compare, hash } from 'bcrypt'
-import { writeFile, readFile } from 'node:fs/promises'
+import { writeFile, readFile, appendFile } from 'node:fs/promises'
 
 class PwdCracker {
   #stored_hash
@@ -66,6 +66,21 @@ class PwdCracker {
       await this.loadStoredHash()
     }
     await writeFile('./stored_hash.json', JSON.stringify(this.#stored_hash))
+  }
+
+  async #getRainbow () {
+    try {
+      const rawRainbow = await readFile('./rainbow_table.txt')
+      return await this.#rainbowParser(rawRainbow)
+    } catch (err) {
+      await appendFile('./rainbow_table.txt', '')
+      return ''
+    }
+  }
+
+  async #rainbowParser (rawRainbow) {
+    const rainbows = String(rawRainbow)
+    return rainbows.split('\n')
   }
 }
 
