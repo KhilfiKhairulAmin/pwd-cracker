@@ -39,7 +39,7 @@ class PwdCracker {
 
   async keepPassword (urlDomain, pwd) {
     const hashedUrlDomain = await hash(urlDomain, 10)
-    const hashedPwd = await hash(pwd, 10)
+    const hashedPwd = await hash(pwd.split('\n')[0], 10)
     this.#stored_hash.push({ urlDomain: hashedUrlDomain, pwd: hashedPwd })
     await this.#save()
   }
@@ -71,6 +71,7 @@ class PwdCracker {
       }
 
       const rainbow = await this.#getRainbow()
+      console.log(rainbow)
 
       if (!rainbow.length) {
         throw PwdCrackerEmptyRainbowError
