@@ -10,7 +10,7 @@ class PwdCrackerError extends Error {
 }
 
 const PwdCrackerEmptyRainbowError = new PwdCrackerError('Please enter possible passwords in rainbow_table.txt')
-const PwdCrackerFalseUrlDomainOrPasswordError = new PwdCrackerError('URL Domain is not registered or Password(s) are not correct')
+const PwdCrackerFalseUrlDomainOrPasswordError = new PwdCrackerError('URL Domain is not registered or provided password(s) are not correct')
 const PwdCrackerIncompleteUrlHttp = new PwdCrackerError('Please include http or https in the URL')
 const PwdCrackerInvalidUrl = new PwdCrackerError('URL is invalid')
 
@@ -47,8 +47,8 @@ class PwdCracker {
       return false
     }
 
-    const hashedUrlDomain = await hash(urlDomain, 10)
-    const hashedPwd = await hash(pwd.split('\n')[0], 10)
+    const hashedUrlDomain = await hash(urlDomain, 15)
+    const hashedPwd = await hash(pwd.split('\n')[0], 15)
     this.#stored_hash.push({ urlDomain: hashedUrlDomain, pwd: hashedPwd })
     await this.#save()
     return true
@@ -88,7 +88,10 @@ class PwdCracker {
       }
 
       for (const pwd of rainbow) {
-        if (await compare(pwd, this.#stored_hash[found].pwd)) return pwd
+        if (await compare(pwd, this.#stored_hash[found].pwd)) {
+          this.#clearRainbow()
+          return pwd
+        }
       }
       throw PwdCrackerFalseUrlDomainOrPasswordError
     } catch (err) {
@@ -121,7 +124,7 @@ class PwdCracker {
 
   #urlDomainParser (url) {
     try {
-      const httpOrHttps = url.slice(0, 7) === 'https://' || url.slice(0, 6) === 'http://'
+      const httpOrHttps = url.slice(0, 8) === 'https://' || url.slice(0, 7) === 'http://'
 
       if (!httpOrHttps) {
         throw PwdCrackerIncompleteUrlHttp
@@ -138,6 +141,11 @@ class PwdCracker {
       this.#errorHandler(err)
       return ''
     }
+  }
+
+  #clearRainbow () {
+    writeFile('./rainbow_table.txt', '', { flag: 'w+' })
+    console.log('Rainbow table have been cleared')
   }
 
   #errorHandler (err) {
