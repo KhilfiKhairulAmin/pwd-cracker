@@ -1,5 +1,6 @@
 import { compare, hash } from 'bcrypt'
 import { writeFile, readFile, appendFile } from 'node:fs/promises'
+import nodejsUrl from 'node:url'
 
 class PwdCrackerError extends Error {
   constructor (message) {
@@ -10,6 +11,8 @@ class PwdCrackerError extends Error {
 
 const PwdCrackerEmptyRainbowError = new PwdCrackerError('Please enter possible passwords in rainbow_table.txt')
 const PwdCrackerFalseUrlDomainOrPasswordError = new PwdCrackerError('URL Domain is not registered or Password(s) are not correct')
+const PwdCrackerIncompleteUrlHttp = new PwdCrackerError('Please include http or https in the URL')
+const PwdCrackerInvalidUrl = new PwdCrackerError('URL is invalid')
 
 class PwdCracker {
   #stored_hash
@@ -37,11 +40,18 @@ class PwdCracker {
     this.#loaded = true
   }
 
-  async keepPassword (urlDomain, pwd) {
+  async keepPassword (url, pwd) {
+    const urlDomain = this.#urlDomainParser(url)
+
+    if (!urlDomain) {
+      return false
+    }
+
     const hashedUrlDomain = await hash(urlDomain, 10)
     const hashedPwd = await hash(pwd.split('\n')[0], 10)
     this.#stored_hash.push({ urlDomain: hashedUrlDomain, pwd: hashedPwd })
     await this.#save()
+    return true
   }
 
   async #getAllUrlDomain () {
@@ -53,8 +63,9 @@ class PwdCracker {
     })
   }
 
-  async tellPassword (urlDomain) {
+  async tellPassword (url) {
     try {
+      const urlDomain = this.#urlDomainParser(url)
       const allUrlDomain = await this.#getAllUrlDomain()
 
       let found = -1
@@ -71,7 +82,6 @@ class PwdCracker {
       }
 
       const rainbow = await this.#getRainbow()
-      console.log(rainbow)
 
       if (!rainbow.length) {
         throw PwdCrackerEmptyRainbowError
@@ -107,6 +117,27 @@ class PwdCracker {
   async #rainbowParser (rawRainbow) {
     const rainbows = String(rawRainbow)
     return rainbows.split('\n')
+  }
+
+  #urlDomainParser (url) {
+    try {
+      const httpOrHttps = url.slice(0, 7) === 'https://' || url.slice(0, 6) === 'http://'
+
+      if (!httpOrHttps) {
+        throw PwdCrackerIncompleteUrlHttp
+      }
+
+      const { host } = nodejsUrl.parse(url)
+
+      if (!host) {
+        throw PwdCrackerInvalidUrl
+      }
+
+      return host
+    } catch (err) {
+      this.#errorHandler(err)
+      return ''
+    }
   }
 
   #errorHandler (err) {
