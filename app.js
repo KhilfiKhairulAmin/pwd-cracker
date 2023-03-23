@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 import { TerminalInterface } from './io.js'
 import { PwdCracker } from './pwdCracker.js'
 
