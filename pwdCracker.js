@@ -29,9 +29,6 @@ const PwdCrackerIncompleteUrlHttp = new PwdCrackerError('Please include http or 
  */
 const PwdCrackerInvalidUrl = new PwdCrackerError('URL is invalid')
 
-/**
- * Core of the `pwd-cracker` application. Handles all backend operation inside the application.
- */
 class PwdCracker {
   /**
    * Stores loaded data from `stored_hash.json`
@@ -39,6 +36,9 @@ class PwdCracker {
   #stored_hash
   #loaded
 
+  /**
+    * Core of the `pwd-cracker` application. Handles all backend operation inside the application.
+    */
   constructor () {
     this.#stored_hash = []
     this.#loaded = false

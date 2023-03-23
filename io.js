@@ -19,10 +19,6 @@ class TerminalInterfaceError extends Error {
  */
 const TerminalInterfaceNotStartedError = new TerminalInterfaceError('Terminal interface is not started. Please start the interface to use it.')
 
-/**
- * **Handles input and output** process in the command line. The class provides minimal functionalities for ease of use to gain input or/and display output.
- * This class collects input from `stdin` and display output through `stdout`.
- */
 class TerminalInterface {
   /**
    * Stores `Interface` object from `node:readline/promises` module
@@ -33,6 +29,10 @@ class TerminalInterface {
    */
   #on
 
+  /**
+   * **Handles input and output** process in the command line. The class provides minimal functionalities for ease of use to gain input or/and display output.
+   * This class collects input from `stdin` and display output through `stdout`.
+   */
   constructor () {
     this.#on = false
   }
