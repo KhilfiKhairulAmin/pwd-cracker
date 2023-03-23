@@ -68,7 +68,7 @@ class PwdCracker {
    * Validates and stores the URL domain and its corresponding password in the form of hash string
    * @param {String} url A valid URL (the URL domain will be parsed automatically)
    * @param {String} pwd Password to be stored
-   * @returns {Boolean} Operation finish status `(success -> true || failed -> false)`
+   * @returns {Promise<Boolean>} Operation finish status `(success -> true || failed -> false)`
    */
   async keepPassword (url, pwd) {
     const urlDomain = this.#urlDomainParser(url)
@@ -86,7 +86,7 @@ class PwdCracker {
 
   /**
    * Returns all URL domains
-   * @returns {Array} URL Domain
+   * @returns {Promise<Boolean>} URL Domain
    */
   async #getAllUrlDomain () {
     if (!this.#loaded) {
@@ -100,7 +100,7 @@ class PwdCracker {
   /**
    * Validates the existence of URL and returns the correct password of the URL. **Important: Input passwords are taken from `rainbow_table.txt`**
    * @param {String} url A valid URL (the URL domain will be parsed automatically)
-   * @returns {String} Password of the specified URL
+   * @returns {Promise<String>} Password of the specified URL
    */
   async tellPassword (url) {
     try {
@@ -149,6 +149,10 @@ class PwdCracker {
     await writeFile('./stored_hash.json', JSON.stringify(this.#stored_hash))
   }
 
+  /**
+   * Gets all rainbows and return it inside an Array
+   * @returns {Promise<String>}
+   */
   async #getRainbow () {
     try {
       const rawRainbow = await readFile('./rainbow_table.txt')
@@ -161,8 +165,8 @@ class PwdCracker {
 
   /**
    * Parse all *rainbows* (possible passwords) listed in `rainbow_table.txt` into an Array
-   * @param {Buffer|String} rawRainbow Data from `rainbow_table.txt`
-   * @returns {Array} Rainbows
+   * @param {Buffer} rawRainbow Data from `rainbow_table.txt`
+   * @returns {Promise<Array<String>} Rainbows
    */
   async #rainbowParser (rawRainbow) {
     const rainbows = String(rawRainbow)

@@ -5,11 +5,13 @@ import { PwdCracker } from './pwdCracker.js'
 
 const pwdCracker = new PwdCracker()
 
+/**
+ * Possible status (state) of the app
+ */
 const state = {
   ON: true,
   OFF: false
 }
-
 let currentState = state.ON
 
 const io = new TerminalInterface()
