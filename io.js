@@ -56,7 +56,7 @@ class TerminalInterface {
   /**
    * Collect input in command line
    * @param {String} question Describe data to be given by user
-   * @returns {String} Data given
+   * @returns {Promise<String>} Data given
    */
   async prompt (question) {
     try {
