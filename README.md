@@ -1,6 +1,6 @@
 ## Welcome to pwd-cracker 👋
 ### About
-**pwd-cracker** is a Node.js terminal application that can keep track of your websites' passwords, storing them securely such that only you can access 'em.
+**pwd-cracker** is a Node.js terminal application that can keeps track of your websites' passwords, storing them securely such that only you can access 'em.
 
 
 ### Philosophy
