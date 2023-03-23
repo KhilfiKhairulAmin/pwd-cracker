@@ -31,9 +31,10 @@ while (currentState) {
       case 0: {
         // Code for KEEP PASSWORD interface
         io.chat('Please enter the following information')
-        const urlDomain = await io.prompt('URL Domain: ')
+        const url = await io.prompt('URL: ')
         const pwd = await io.prompt('Password: ')
-        const operation = await pwdCracker.keepPassword(urlDomain, pwd)
+        io.chat('')
+        const operation = await pwdCracker.keepPassword(url, pwd)
         if (!operation) {
           io.chat('Operation failed!')
           continue
@@ -46,6 +47,7 @@ while (currentState) {
         io.chat('Please enter the following information')
         const urlDomain = await io.prompt('URL Domain: ')
         const operation = await pwdCracker.tellPassword(urlDomain)
+        io.chat('')
         if (!operation) {
           io.chat('Operation failed!')
           continue
@@ -61,6 +63,7 @@ while (currentState) {
         continue
       }
     }
+    io.chat('')
   } catch (err) {
     console.log(err.stack)
     process.exit(1)
