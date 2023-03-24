@@ -1,5 +1,5 @@
 import { compare, hash } from 'bcrypt'
-import { writeFile, readFile, appendFile } from 'node:fs/promises'
+import { writeFile, readFile, appendFile, unlink } from 'node:fs/promises'
 import nodejsUrl from 'node:url'
 
 /**
@@ -23,11 +23,15 @@ const PwdCrackerFalseUrlDomainOrPasswordError = new PwdCrackerError('URL Domain 
 /**
  * HTTP Protocol must be included to determine the validity of the URL
  */
-const PwdCrackerIncompleteUrlHttp = new PwdCrackerError('Please include http or https in the URL')
+const PwdCrackerIncompleteUrlHttpError = new PwdCrackerError('Please include http or https in the URL')
 /**
  * URL must be a URL. Non-URL is not accepted and can't be stored even as an identifier of a website
  */
-const PwdCrackerInvalidUrl = new PwdCrackerError('URL is invalid')
+const PwdCrackerInvalidUrlError = new PwdCrackerError('URL is invalid')
+/**
+ * A pwd can't be an empty string
+ */
+const PwdCrackerEmptyPwdStringError = new PwdCrackerError('Password can\'t be empty')
 
 class PwdCracker {
   /**
@@ -71,6 +75,10 @@ class PwdCracker {
    * @returns {Promise<Boolean>} Operation finish status `(success -> true || failed -> false)`
    */
   async keepPassword (url, pwd) {
+    if (!this.#validatePassword(pwd)) {
+      return false
+    }
+
     const urlDomain = this.#urlDomainParser(url)
 
     if (!urlDomain) {
@@ -82,6 +90,18 @@ class PwdCracker {
     this.#stored_hash.push({ urlDomain: hashedUrlDomain, pwd: hashedPwd })
     await this.#save()
     return true
+  }
+
+  #validatePassword (pwd) {
+    try {
+      if (pwd === '') {
+        throw PwdCrackerEmptyPwdStringError
+      }
+      return true
+    } catch (err) {
+      this.#errorHandler(err)
+      return false
+    }
   }
 
   /**
@@ -183,13 +203,13 @@ class PwdCracker {
       const httpOrHttps = url.slice(0, 8) === 'https://' || url.slice(0, 7) === 'http://'
 
       if (!httpOrHttps) {
-        throw PwdCrackerIncompleteUrlHttp
+        throw PwdCrackerIncompleteUrlHttpError
       }
 
       const { host } = nodejsUrl.parse(url)
 
       if (!host) {
-        throw PwdCrackerInvalidUrl
+        throw PwdCrackerInvalidUrlError
       }
 
       return host
@@ -200,10 +220,10 @@ class PwdCracker {
   }
 
   /**
-   * Clear the content of `rainbow_table.txt` file
+   * Delete `rainbow_table.txt` file
    */
   #clearRainbow () {
-    writeFile('./rainbow_table.txt', '', { flag: 'w+' })
+    unlink('./rainbow_table.txt')
     console.log('Rainbow table have been cleared')
   }
 
