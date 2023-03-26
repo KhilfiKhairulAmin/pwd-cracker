@@ -1,6 +1,12 @@
 import { compare, hash } from 'bcrypt'
-import { writeFile, readFile, appendFile, unlink } from 'node:fs/promises'
+import { writeFile, readFile, appendFile } from 'node:fs/promises'
 import nodejsUrl from 'node:url'
+import { homedir } from 'node:os'
+import { existsSync, mkdirSync } from 'node:fs'
+
+const homeDir = homedir()
+const storedHashFilename = 'stored_hash.json'
+const rainbowTableFilename = 'rainbow_table.txt'
 
 /**
  * Error object used in `PwdCracker` class context
@@ -37,32 +43,41 @@ class PwdCracker {
   /**
    * Stores loaded data from `stored_hash.json`
    */
-  #stored_hash
+  #storedHash
+  #storedHashPath = `${homeDir}/.pwd-cracker`
+  #rainbowTablePath = `${homeDir}/Desktop`
   #loaded
 
   /**
     * Core of the `pwd-cracker` application. Handles all backend operation inside the application.
     */
   constructor () {
-    this.#stored_hash = []
+    this.#storedHash = []
     this.#loaded = false
+
+    if (!existsSync(this.#storedHashPath)) {
+      mkdirSync(this.#storedHashPath)
+    }
+
+    this.#storedHashPath += `/${storedHashFilename}`
+    this.#rainbowTablePath += `/${rainbowTableFilename}`
   }
 
   /**
-   * Loads data from `stored_hash.json`
+   * Loads data from `stored_hash.json` and `user_config.json`
    */
-  async loadStoredHash () {
+  async loadData () {
     let data
     try {
-      data = JSON.parse(await readFile('./stored_hash.json'))
+      data = JSON.parse(await readFile(this.#storedHashPath))
     } catch (err) {
       data = []
     }
-    const temp = this.#stored_hash
-    this.#stored_hash = data
+    const temp = this.#storedHash
+    this.#storedHash = data
 
     for (const item of temp) {
-      this.#stored_hash.push(item)
+      this.#storedHash.push(item)
     }
 
     this.#loaded = true
@@ -87,7 +102,7 @@ class PwdCracker {
 
     const hashedUrlDomain = await hash(urlDomain, 15)
     const hashedPwd = await hash(pwd.split('\n')[0], 15)
-    this.#stored_hash.push({ urlDomain: hashedUrlDomain, pwd: hashedPwd })
+    this.#storedHash.push({ urlDomain: hashedUrlDomain, pwd: hashedPwd })
     await this.#save()
     return true
   }
@@ -110,9 +125,9 @@ class PwdCracker {
    */
   async #getAllUrlDomain () {
     if (!this.#loaded) {
-      await this.loadStoredHash()
+      await this.loadData()
     }
-    return this.#stored_hash.map((data) => {
+    return this.#storedHash.map((data) => {
       return data.urlDomain
     })
   }
@@ -147,7 +162,7 @@ class PwdCracker {
       }
 
       for (const pwd of rainbow) {
-        if (await compare(pwd, this.#stored_hash[found].pwd)) {
+        if (await compare(pwd, this.#storedHash[found].pwd)) {
           this.#clearRainbow()
           return pwd
         }
@@ -164,9 +179,9 @@ class PwdCracker {
    */
   async #save () {
     if (!this.#loaded) {
-      await this.loadStoredHash()
+      await this.loadData()
     }
-    await writeFile('./stored_hash.json', JSON.stringify(this.#stored_hash))
+    await writeFile(this.#storedHashPath, JSON.stringify(this.#storedHash))
   }
 
   /**
@@ -175,10 +190,10 @@ class PwdCracker {
    */
   async #getRainbow () {
     try {
-      const rawRainbow = await readFile('./rainbow_table.txt')
+      const rawRainbow = await readFile(this.#rainbowTablePath)
       return await this.#rainbowParser(rawRainbow)
     } catch (err) {
-      await appendFile('./rainbow_table.txt', '')
+      await appendFile(this.#rainbowTablePath, '')
       return []
     }
   }
@@ -223,7 +238,7 @@ class PwdCracker {
    * Delete `rainbow_table.txt` file
    */
   #clearRainbow () {
-    unlink('./rainbow_table.txt')
+    writeFile(this.#rainbowTablePath, '', { flag: 'w+' })
     console.log('Rainbow table have been cleared')
   }
 
