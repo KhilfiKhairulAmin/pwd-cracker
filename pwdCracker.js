@@ -65,21 +65,8 @@ class PwdCracker {
   /**
    * Loads data from `stored_hash.json` and `user_config.json`
    */
-  async loadData () {
-    let data
-    try {
-      data = JSON.parse(await readFileSync(this.#storedHashPath))
-    } catch (err) {
-      data = []
-    }
-    const temp = this.#storedHash
-    this.#storedHash = data
-
-    for (const item of temp) {
-      this.#storedHash.push(item)
-    }
-
-    this.#loaded = true
+  getData () {
+    return JSON.parse(readFileSync(this.#storedHashPath))
   }
 
   /**
@@ -124,7 +111,7 @@ class PwdCracker {
    */
   async #getAllUrlDomain () {
     if (!this.#loaded) {
-      await this.loadData()
+      await this.getData()
     }
     return this.#storedHash.map((data) => {
       return data.urlDomain
@@ -178,7 +165,7 @@ class PwdCracker {
    */
   async #save () {
     if (!this.#loaded) {
-      await this.loadData()
+      await this.getData()
     }
     await writeFileSync(this.#storedHashPath, JSON.stringify(this.#storedHash))
   }
