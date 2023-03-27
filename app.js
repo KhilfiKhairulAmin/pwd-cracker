@@ -34,26 +34,27 @@ while (currentState) {
         const url = await io.prompt('URL: ')
         const pwd = await io.prompt('Password: ')
         io.chat('')
-        const operation = await pwdCracker.keepPassword(url, pwd)
-        if (!operation) {
+        try {
+          pwdCracker.keepPassword(url, pwd)
+          io.chat('Operation successful!')
+        } catch (err) {
+          io.chat(err.message)
           io.chat('Operation failed!')
-          continue
         }
-        io.chat('Operation successful!')
         break
       }
       case 1: {
         // Code for TELL PASSWORD interface
         io.chat('Please enter the following information')
         const urlDomain = await io.prompt('URL Domain: ')
-        const operation = await pwdCracker.tellPassword(urlDomain)
-        io.chat('')
-        if (!operation) {
+        try {
+          const pwd = pwdCracker.tellPassword(urlDomain)
+          io.chat('Password is ' + '\x1b[42m' + pwd + '\x1b[0m')
+          io.chat('Operation successful!')
+        } catch (err) {
+          io.chat(err.message)
           io.chat('Operation failed!')
-          continue
         }
-        io.chat('Password is ' + '\x1b[42m' + operation + '\x1b[0m')
-        io.chat('Operation successful!')
         break
       }
       case 2: {
