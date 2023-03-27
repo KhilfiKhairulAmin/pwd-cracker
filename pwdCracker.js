@@ -1,5 +1,5 @@
 import { compareSync, hashSync } from 'bcrypt'
-import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import nodejsUrl from 'node:url'
 import { homedir } from 'node:os'
 
@@ -186,7 +186,6 @@ class PwdCracker {
    */
   #clearRainbow () {
     writeFileSync(this.#rainbowTablePath, '', { flag: 'w+' })
-    console.log('Rainbow table have been cleared')
   }
 }
 
