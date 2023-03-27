@@ -1,8 +1,7 @@
 import { compare, hash } from 'bcrypt'
-import { writeFile, readFile, appendFile } from 'node:fs/promises'
+import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'node:fs'
 import nodejsUrl from 'node:url'
 import { homedir } from 'node:os'
-import { existsSync, mkdirSync } from 'node:fs'
 
 const homeDir = homedir()
 const storedHashFilename = 'stored_hash.json'
@@ -69,7 +68,7 @@ class PwdCracker {
   async loadData () {
     let data
     try {
-      data = JSON.parse(await readFile(this.#storedHashPath))
+      data = JSON.parse(await readFileSync(this.#storedHashPath))
     } catch (err) {
       data = []
     }
@@ -181,7 +180,7 @@ class PwdCracker {
     if (!this.#loaded) {
       await this.loadData()
     }
-    await writeFile(this.#storedHashPath, JSON.stringify(this.#storedHash))
+    await writeFileSync(this.#storedHashPath, JSON.stringify(this.#storedHash))
   }
 
   /**
@@ -190,10 +189,10 @@ class PwdCracker {
    */
   async #getRainbow () {
     try {
-      const rawRainbow = await readFile(this.#rainbowTablePath)
+      const rawRainbow = await readFileSync(this.#rainbowTablePath)
       return await this.#rainbowParser(rawRainbow)
     } catch (err) {
-      await appendFile(this.#rainbowTablePath, '')
+      await appendFileSync(this.#rainbowTablePath, '')
       return []
     }
   }
@@ -238,7 +237,7 @@ class PwdCracker {
    * Delete `rainbow_table.txt` file
    */
   #clearRainbow () {
-    writeFile(this.#rainbowTablePath, '', { flag: 'w+' })
+    writeFileSync(this.#rainbowTablePath, '', { flag: 'w+' })
     console.log('Rainbow table have been cleared')
   }
 
