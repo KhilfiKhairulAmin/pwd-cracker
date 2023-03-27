@@ -1,4 +1,4 @@
-import { compare, hashSync } from 'bcrypt'
+import { compareSync, hashSync } from 'bcrypt'
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'node:fs'
 import nodejsUrl from 'node:url'
 import { homedir } from 'node:os'
@@ -39,21 +39,13 @@ const PwdCrackerInvalidUrlError = new PwdCrackerError('URL is invalid')
 const PwdCrackerEmptyPwdStringError = new PwdCrackerError('Password can\'t be empty')
 
 class PwdCracker {
-  /**
-   * Stores loaded data from `stored_hash.json`
-   */
-  #storedHash
   #storedHashPath = `${homeDir}/.pwd-cracker`
   #rainbowTablePath = `${homeDir}/Desktop`
-  #loaded
 
   /**
     * Core of the `pwd-cracker` application. Handles all backend operation inside the application.
     */
   constructor () {
-    this.#storedHash = []
-    this.#loaded = false
-
     if (!existsSync(this.#storedHashPath)) {
       mkdirSync(this.#storedHashPath)
     }
@@ -97,11 +89,8 @@ class PwdCracker {
    * Returns all URL domains
    * @returns {Promise<Boolean>} URL Domain
    */
-  async #getAllUrlDomain () {
-    if (!this.#loaded) {
-      await this.#getData()
-    }
-    return this.#storedHash.map((data) => {
+  #getAllUrlDomain () {
+    return this.#getData().map((data) => {
       return data.urlDomain
     })
   }
@@ -111,41 +100,39 @@ class PwdCracker {
    * @param {String} url A valid URL (the URL domain will be parsed automatically)
    * @returns {Promise<String>} Password of the specified URL
    */
-  async tellPassword (url) {
-    try {
-      const urlDomain = this.#urlDomainParser(url)
-      const allUrlDomain = await this.#getAllUrlDomain()
+  tellPassword (url) {
+    const urlDomain = this.#urlDomainParser(url)
+    const allUrlDomain = this.#getAllUrlDomain()
 
-      let found = -1
+    let found = -1
 
-      for (let i = 0; i < allUrlDomain.length; i++) {
-        if (await compare(urlDomain, allUrlDomain[i])) {
-          found = i
-          break
-        }
+    for (let i = 0; i < allUrlDomain.length; i++) {
+      if (compareSync(urlDomain, allUrlDomain[i])) {
+        found = i
+        break
       }
-
-      if (found === -1) {
-        throw PwdCrackerFalseUrlDomainOrPasswordError
-      }
-
-      const rainbow = await this.#getRainbow()
-
-      if (!rainbow.length) {
-        throw PwdCrackerEmptyRainbowError
-      }
-
-      for (const pwd of rainbow) {
-        if (await compare(pwd, this.#storedHash[found].pwd)) {
-          this.#clearRainbow()
-          return pwd
-        }
-      }
-      throw PwdCrackerFalseUrlDomainOrPasswordError
-    } catch (err) {
-      this.#errorHandler(err)
-      return false
     }
+
+    if (found === -1) {
+      throw PwdCrackerFalseUrlDomainOrPasswordError
+    }
+
+    const rainbow = this.#getRainbow()
+
+    if (!rainbow.length) {
+      throw PwdCrackerEmptyRainbowError
+    }
+
+    const data = this.#getData()
+
+    for (const pwd of rainbow) {
+      if (compareSync(pwd, data[found].pwd)) {
+        this.#clearRainbow()
+        return pwd
+      }
+    }
+
+    throw PwdCrackerFalseUrlDomainOrPasswordError
   }
 
   /**
@@ -159,14 +146,8 @@ class PwdCracker {
    * Gets all rainbows and return it inside an Array
    * @returns {Promise<String>}
    */
-  async #getRainbow () {
-    try {
-      const rawRainbow = await readFileSync(this.#rainbowTablePath)
-      return await this.#rainbowParser(rawRainbow)
-    } catch (err) {
-      await appendFileSync(this.#rainbowTablePath, '')
-      return []
-    }
+  #getRainbow () {
+    return this.#rainbowParser(readFileSync(this.#rainbowTablePath))
   }
 
   /**
@@ -174,7 +155,7 @@ class PwdCracker {
    * @param {Buffer} rawRainbow Data from `rainbow_table.txt`
    * @returns {Promise<Array<String>} Rainbows
    */
-  async #rainbowParser (rawRainbow) {
+  #rainbowParser (rawRainbow) {
     const rainbows = String(rawRainbow)
     return rainbows.split('\n')
   }
@@ -206,14 +187,6 @@ class PwdCracker {
   #clearRainbow () {
     writeFileSync(this.#rainbowTablePath, '', { flag: 'w+' })
     console.log('Rainbow table have been cleared')
-  }
-
-  /**
-   * Handles error inside the class
-   * @param {PwdCrackerError} err Error that occured in `PwdCracker` context
-   */
-  #errorHandler (err) {
-    console.error(err.message)
   }
 }
 
