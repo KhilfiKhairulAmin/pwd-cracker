@@ -52,6 +52,12 @@ class PwdCracker {
 
     this.#storedHashPath += `/${storedHashFilename}`
     this.#rainbowTablePath += `/${rainbowTableFilename}`
+
+    try {
+      readFileSync(this.#rainbowTablePath)
+    } catch (err) {
+      writeFileSync(this.#rainbowTablePath, '')
+    }
   }
 
   /**
@@ -136,7 +142,8 @@ class PwdCracker {
   }
 
   /**
-   * Overwrite current `stored_hash.json` file with the value of `#stored_hash` variable
+   * Stores data in `stored_hash.json`
+   * @param {Object} data Data to be stored
    */
   #save (data) {
     writeFileSync(this.#storedHashPath, JSON.stringify(data))
@@ -144,7 +151,7 @@ class PwdCracker {
 
   /**
    * Gets all rainbows and return it inside an Array
-   * @returns {Promise<String>}
+   * @returns {Array<String>}
    */
   #getRainbow () {
     return this.#rainbowParser(readFileSync(this.#rainbowTablePath))
@@ -153,7 +160,7 @@ class PwdCracker {
   /**
    * Parse all *rainbows* (possible passwords) listed in `rainbow_table.txt` into an Array
    * @param {Buffer} rawRainbow Data from `rainbow_table.txt`
-   * @returns {Promise<Array<String>} Rainbows
+   * @returns {Array<String>} Rainbows
    */
   #rainbowParser (rawRainbow) {
     const rainbows = String(rawRainbow)
@@ -182,7 +189,7 @@ class PwdCracker {
   }
 
   /**
-   * Delete `rainbow_table.txt` file
+   * Clear `rainbow_table.txt` file
    */
   #clearRainbow () {
     writeFileSync(this.#rainbowTablePath, '', { flag: 'w+' })
