@@ -63,7 +63,7 @@ class PwdCracker {
   }
 
   /**
-   * Loads data from `stored_hash.json` and `user_config.json`
+   * Gets data from `stored_hash.json`
    */
   getData () {
     return JSON.parse(readFileSync(this.#storedHashPath))
