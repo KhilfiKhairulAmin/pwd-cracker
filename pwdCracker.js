@@ -4,6 +4,8 @@ import nodejsUrl from 'node:url'
 import { homedir } from 'node:os'
 
 const homeDir = homedir()
+const rainbowTableDir = `${homeDir}/Desktop`
+const storedHashDir = `${homeDir}/.pwd-cracker`
 const storedHashFilename = 'stored_hash.json'
 const rainbowTableFilename = 'rainbow_table.txt'
 
@@ -20,7 +22,7 @@ class PwdCrackerError extends Error {
 /**
  * Passwords must be listed in `rainbow_table.txt`
  */
-const PwdCrackerEmptyRainbowError = new PwdCrackerError('Please list possible passwords in rainbow_table.txt')
+const PwdCrackerEmptyRainbowError = new PwdCrackerError(`Please list possible passwords in ${rainbowTableDir}/${rainbowTableFilename}`)
 /**
  * Ambigouos error that contains two possible factors, URL Domain and password. URL domain must be registered first through `keepPassword()` function and password must be congruent with the provided one in registration
  */
@@ -39,8 +41,8 @@ const PwdCrackerInvalidUrlError = new PwdCrackerError('URL is invalid')
 const PwdCrackerEmptyPwdStringError = new PwdCrackerError('Password can\'t be empty')
 
 class PwdCracker {
-  #storedHashPath = `${homeDir}/.pwd-cracker`
-  #rainbowTablePath = `${homeDir}/Desktop`
+  #storedHashPath = storedHashDir
+  #rainbowTablePath = rainbowTableDir
 
   /**
     * Core of the `pwd-cracker` application. Handles all backend operation inside the application.
@@ -104,7 +106,7 @@ class PwdCracker {
   /**
    * Validates the existence of URL and returns the correct password of the URL. **Important: Input passwords are taken from `rainbow_table.txt`**
    * @param {String} url A valid URL (the URL domain will be parsed automatically)
-   * @returns {Promise<String>} Password of the specified URL
+   * @returns {String} Password of the specified URL
    */
   tellPassword (url) {
     const urlDomain = this.#urlDomainParser(url)
@@ -124,10 +126,6 @@ class PwdCracker {
     }
 
     const rainbow = this.#getRainbow()
-
-    if (!rainbow.length) {
-      throw PwdCrackerEmptyRainbowError
-    }
 
     const data = this.#getData()
 
@@ -154,17 +152,21 @@ class PwdCracker {
    * @returns {Array<String>}
    */
   #getRainbow () {
-    return this.#rainbowParser(readFileSync(this.#rainbowTablePath))
+    const rainbow = String(readFileSync(this.#rainbowTablePath))
+    console.log(rainbow)
+    if (!rainbow) {
+      throw PwdCrackerEmptyRainbowError
+    }
+    return this.#rainbowParser(rainbow)
   }
 
   /**
    * Parse all *rainbows* (possible passwords) listed in `rainbow_table.txt` into an Array
-   * @param {Buffer} rawRainbow Data from `rainbow_table.txt`
+   * @param {String} rawRainbow Data from `rainbow_table.txt`
    * @returns {Array<String>} Rainbows
    */
   #rainbowParser (rawRainbow) {
-    const rainbows = String(rawRainbow)
-    return rainbows.split('\n')
+    return rawRainbow.split('\n')
   }
 
   /**
