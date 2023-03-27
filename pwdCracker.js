@@ -1,4 +1,4 @@
-import { compare, hash } from 'bcrypt'
+import { compare, hashSync } from 'bcrypt'
 import { readFileSync, writeFileSync, appendFileSync, existsSync, mkdirSync } from 'node:fs'
 import nodejsUrl from 'node:url'
 import { homedir } from 'node:os'
@@ -65,7 +65,7 @@ class PwdCracker {
   /**
    * Gets data from `stored_hash.json`
    */
-  getData () {
+  #getData () {
     return JSON.parse(readFileSync(this.#storedHashPath))
   }
 
@@ -73,35 +73,23 @@ class PwdCracker {
    * Validates and stores the URL domain and its corresponding password in the form of hash string
    * @param {String} url A valid URL (the URL domain will be parsed automatically)
    * @param {String} pwd Password to be stored
-   * @returns {Promise<Boolean>} Operation finish status `(success -> true || failed -> false)`
    */
-  async keepPassword (url, pwd) {
-    if (!this.#validatePassword(pwd)) {
-      return false
-    }
-
+  keepPassword (url, pwd) {
+    this.#validatePassword(pwd)
     const urlDomain = this.#urlDomainParser(url)
-
-    if (!urlDomain) {
-      return false
-    }
-
-    const hashedUrlDomain = await hash(urlDomain, 15)
-    const hashedPwd = await hash(pwd.split('\n')[0], 15)
-    this.#storedHash.push({ urlDomain: hashedUrlDomain, pwd: hashedPwd })
-    await this.#save()
-    return true
+    const hashedUrlDomain = hashSync(urlDomain, 15)
+    const hashedPwd = hashSync(pwd.split('\n')[0], 15)
+    const data = this.#getData()
+    data.push({
+      urlDomain: hashedUrlDomain,
+      pwd: hashedPwd
+    })
+    this.#save(data)
   }
 
   #validatePassword (pwd) {
-    try {
-      if (pwd === '') {
-        throw PwdCrackerEmptyPwdStringError
-      }
-      return true
-    } catch (err) {
-      this.#errorHandler(err)
-      return false
+    if (pwd === '') {
+      throw PwdCrackerEmptyPwdStringError
     }
   }
 
@@ -111,7 +99,7 @@ class PwdCracker {
    */
   async #getAllUrlDomain () {
     if (!this.#loaded) {
-      await this.getData()
+      await this.#getData()
     }
     return this.#storedHash.map((data) => {
       return data.urlDomain
@@ -163,11 +151,8 @@ class PwdCracker {
   /**
    * Overwrite current `stored_hash.json` file with the value of `#stored_hash` variable
    */
-  async #save () {
-    if (!this.#loaded) {
-      await this.getData()
-    }
-    await writeFileSync(this.#storedHashPath, JSON.stringify(this.#storedHash))
+  #save (data) {
+    writeFileSync(this.#storedHashPath, JSON.stringify(data))
   }
 
   /**
@@ -200,24 +185,19 @@ class PwdCracker {
    * @returns {String} URL Domain
    */
   #urlDomainParser (url) {
-    try {
-      const httpOrHttps = url.slice(0, 8) === 'https://' || url.slice(0, 7) === 'http://'
+    const httpOrHttps = url.slice(0, 8) === 'https://' || url.slice(0, 7) === 'http://'
 
-      if (!httpOrHttps) {
-        throw PwdCrackerIncompleteUrlHttpError
-      }
-
-      const { host } = nodejsUrl.parse(url)
-
-      if (!host) {
-        throw PwdCrackerInvalidUrlError
-      }
-
-      return host
-    } catch (err) {
-      this.#errorHandler(err)
-      return ''
+    if (!httpOrHttps) {
+      throw PwdCrackerIncompleteUrlHttpError
     }
+
+    const { host } = nodejsUrl.parse(url)
+
+    if (!host) {
+      throw PwdCrackerInvalidUrlError
+    }
+
+    return host
   }
 
   /**
