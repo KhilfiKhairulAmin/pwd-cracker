@@ -16,7 +16,6 @@ const state = {
 let currentState = state.ON
 
 const io = new TerminalInterface()
-io.start()
 io.chat('Welcome to PWD Cracker')
 
 while (currentState) {
@@ -50,6 +49,8 @@ while (currentState) {
         try {
           const pwd = pwdCracker.tellPassword(urlDomain)
           io.chat('Password is ' + '\x1b[42m' + pwd + '\x1b[0m')
+          await io.prompt('Press Enter to continue...')
+          io.clear()
           io.chat('Operation successful!')
         } catch (err) {
           io.chat(err.message)
@@ -71,5 +72,4 @@ while (currentState) {
   }
 }
 
-io.stop()
 process.exit(0)
