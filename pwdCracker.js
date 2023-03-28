@@ -77,8 +77,8 @@ class PwdCracker {
   keepPassword (url, pwd) {
     this.#validatePassword(pwd)
     const urlDomain = this.#urlDomainParser(url)
-    const hashedUrlDomain = hashSync(urlDomain, 15)
-    const hashedPwd = hashSync(pwd.split('\n')[0], 15)
+    const hashedUrlDomain = hashSync(urlDomain, 5)
+    const hashedPwd = hashSync(pwd.split('\n')[0], 12)
     const data = this.#getData()
     data.push({
       urlDomain: hashedUrlDomain,
